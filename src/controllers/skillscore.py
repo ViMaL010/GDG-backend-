@@ -25,30 +25,12 @@ from pathlib import Path
 
 
 # GitHub Authentication - More secure approach
-import os
-from dotenv import load_dotenv
-
 def get_github_token():
-    """
-    Get GitHub token from environment variable.
-    
-    Loads environment variables from .env file if not already loaded.
-    Raises a more informative error if token is missing.
-    
-    Returns:
-        str: GitHub API token or empty string if not set
-    """
-    # Load environment variables from .env file
-    load_dotenv()
-    
-    # Retrieve the token
-    token = os.environ.get("GITHUB_TOKEN")
-    
-    # Check if token is None or empty
+    """Get GitHub token from environment variable."""
+    token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
-        print("Error: GITHUB_TOKEN is not set. Please set the token in your .env file or environment variables.")
+        print("Warning: GITHUB_TOKEN environment variable not set. API rate limits will be lower.")
         return ""
-    
     return token
 
 def get_headers():

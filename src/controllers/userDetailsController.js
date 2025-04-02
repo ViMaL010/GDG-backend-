@@ -50,3 +50,27 @@ export const checkUserExist = async (req, res) => {
   }
 };
 
+export const getUserDetails = async (req, res) => {  
+  const { email, mobileNumber } = req.body; 
+  console.log(email, mobileNumber)
+  console.log(req.body)
+
+  try{
+    const existingUser = await UserDetails.findOne({
+      $or: [
+        { 'personalInfo.email': email },
+        { 'personalInfo.mobileNumber': mobileNumber }
+      ]
+    });
+
+    res.json({
+      response : existingUser
+    })
+
+  } catch(e){
+    res.status(500).json({
+      msg : "Error checking user"
+    })
+  }
+}
+
