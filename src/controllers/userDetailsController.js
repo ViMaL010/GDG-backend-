@@ -50,27 +50,31 @@ export const checkUserExist = async (req, res) => {
   }
 };
 
-export const getUserDetails = async (req, res) => {  
-  const { email, mobileNumber } = req.body; 
-  console.log(email, mobileNumber)
-  console.log(req.body)
-
-  try{
+export const getUserDetails = async (req, res) => {
+  const { email } = req.body; // Extract email directly from req.body
+  
+  try {
     const existingUser = await UserDetails.findOne({
-      $or: [
-        { 'personalInfo.email': email },
-        { 'personalInfo.mobileNumber': mobileNumber }
-      ]
+      "personalInfo.email": email // Corrected query to match the structure
     });
 
-    res.json({
-      response : existingUser
-    })
+    console.log(existingUser); // Logging the existing user object
 
-  } catch(e){
+    if (!existingUser) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    else{    
+      res.json({
+      response: existingUser // Sending existing user data as response
+    });
+    }
+
+
+  } catch (e) {
     res.status(500).json({
-      msg : "Error checking user"
-    })
+      msg: "Error checking user"
+    });
   }
 }
+
 

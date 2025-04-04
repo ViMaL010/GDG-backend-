@@ -10,6 +10,6 @@ const UserDetailRouter = express.Router();
 // UserDetailRouter.get('/download/:filename' , authenticateUser, fileDownload);
 UserDetailRouter.post('/uploadUserDetails', authenticateUser, CreateUserDetails)
 UserDetailRouter.post('/check',authenticateUser ,checkUserExist)
-UserDetailRouter.get('/getUserDetails', authenticateUser, getUserDetails)
+UserDetailRouter.post('/getUserDetails', authenticateUser, getUserDetails)
 
 export default UserDetailRouter;
