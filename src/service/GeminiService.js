@@ -1,6 +1,5 @@
+// geminiService.js
 import dotenv from "dotenv";
-import express from "express";
-import cors from "cors";
 import { GoogleAuth } from "google-auth-library";
 import fs from "fs";
 import path from "path";
@@ -10,10 +9,6 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const app = express();
-app.use(cors());
-app.use(express.json());
 
 // Load system instructions from a text file
 const SYSTEM_INSTRUCTION_PATH = path.join(__dirname, "instructions.txt");
@@ -28,7 +23,8 @@ function getSystemInstructions() {
 
 // Initialize Google Auth with the service account key
 const auth = new GoogleAuth({
-    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS || "C:/Users/suresh/Documents/GitHub/FundED-chatbot/chatbot-backend/key.json", 
+    keyFile: process.env.GOOGLE_CREDENTIALS_JSON || 
+             "C:/Users/raghu/Downloads/key.json",
     scopes: ["https://www.googleapis.com/auth/cloud-platform"]
 });
 
@@ -46,9 +42,8 @@ async function getAccessToken() {
     }
 }
 
-app.post("/chat", async (req, res) => {
+export async function generateGeminiResponse(userMessage) {
     try {
-        const userMessage = req.body.message;
         const accessToken = await getAccessToken();
         
         const PROJECT_ID = "amazing-insight-452906-e3";
@@ -76,7 +71,7 @@ app.post("/chat", async (req, res) => {
                 topP: 0.95
             }
         };
-
+        
         const response = await fetch(API_ENDPOINT, {
             method: "POST",
             headers: {
@@ -85,24 +80,18 @@ app.post("/chat", async (req, res) => {
             },
             body: JSON.stringify(requestBody)
         });
-
+        
         const data = await response.json();
-
+        
         const botMessage = 
-            data.candidates?.[0]?.content?.parts?.[0]?.text || 
-            data.candidates?.[0]?.text || 
-            (data.candidates && data.candidates.length > 0 ? 
-                JSON.stringify(data.candidates[0]) : 
+            data.candidates?.[0]?.content?.parts?.[0]?.text ||
+            data.candidates?.[0]?.text ||
+            (data.candidates && data.candidates.length > 0 ?
+                JSON.stringify(data.candidates[0]) :
                 "Sorry, I couldn't understand that.");
-
-        res.json({ message: botMessage });
+                
+        return { message: botMessage };
     } catch (error) {
-        res.status(500).json({ 
-            error: "Failed to process chat request", 
-            details: error.message 
-        });
+        throw new Error(`Failed to process chat request: ${error.message}`);
     }
-});
-
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}

@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import signRoutes from "./routes/signRoutes.js";
 import UserDetailRouter from "./routes/detailRoutes.js";
 import AIRouter from "./routes/AIRouter.js";
+import GeminiRouter from "./routes/GeminiRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -18,5 +19,6 @@ app.use("/api/scholarships", scholarshipRoutes);
 app.use("/api/sign", signRoutes);
 app.use("/api/updateCampaign", UserDetailRouter);
 app.use("/api/Ai", AIRouter);
+app.use("/api/gemini", GeminiRouter);
 
 export default app;
