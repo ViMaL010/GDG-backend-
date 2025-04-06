@@ -29,11 +29,14 @@ let authOptions = {};
 if (process.env.GOOGLE_CREDENTIALS) {
     try {
         // Parse the JSON string directly instead of writing to file
-        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+        const credentials = process.env.GOOGLE_CREDENTIALS || "/etc/secrets/key.json";
+        const parsedCredentials = JSON.parse(credentials);
         authOptions = {
-            credentials: credentials,
+            credentials: parsedCredentials,
             scopes: ["https://www.googleapis.com/auth/cloud-platform"]
         };
+        
+        console.log("credentials: ",credentials.client_email); 
     } catch (err) {
         // Fallback to writing the file if parsing fails
         try {
@@ -81,9 +84,9 @@ export async function generateGeminiResponse(userMessage) {
         console.log("Requesting access token...");
         const accessToken = await getAccessToken();
         
-        const PROJECT_ID = process.env.GOOGLE_PROJECT_ID || "amazing-insight-452906-e3";
-        const LOCATION_ID = process.env.GOOGLE_LOCATION_ID || "us-central1";
-        const MODEL_ID = process.env.MODEL_ID || "gemini-2.0-flash-001";
+        const PROJECT_ID = "amazing-insight-452906-e3";
+        const LOCATION_ID =  "us-central1";
+        const MODEL_ID = "gemini-2.0-flash-001";
         
         console.log(`Using project: ${PROJECT_ID}, location: ${LOCATION_ID}, model: ${MODEL_ID}`);
         
