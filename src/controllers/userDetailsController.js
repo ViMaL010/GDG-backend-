@@ -41,7 +41,7 @@ export const checkUserExist = async (req, res) => {
     console.log(existingUser);
 
     if (existingUser) {
-      res.status(200).json({ message: 'User already exists'});
+      res.status(200).json({ message: 'User already exists' , user: existingUser });
     } else {
       res.status(404).json({ message: 'User does not exist' });
     }
