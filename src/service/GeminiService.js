@@ -21,10 +21,22 @@ function getSystemInstructions() {
     }
 }
 
-// Initialize Google Auth with the service account key
+// 🌐 Write GOOGLE_CREDENTIALS to a temp file if available
+const TEMP_CREDENTIALS_PATH = path.join(__dirname, "temp-google-creds.json");
+
+if (process.env.GOOGLE_CREDENTIALS) {
+    try {
+        fs.writeFileSync(TEMP_CREDENTIALS_PATH, process.env.GOOGLE_CREDENTIALS);
+    } catch (err) {
+        console.error("Error writing service account credentials:", err);
+    }
+}
+
+// Initialize Google Auth with either temp credentials or fallback path
 const auth = new GoogleAuth({
-    keyFile: process.env.GOOGLE_CREDENTIALS_JSON || 
-             "C:/Users/raghu/Downloads/key.json",
+    keyFile: process.env.GOOGLE_CREDENTIALS
+        ? TEMP_CREDENTIALS_PATH
+        : process.env.GOOGLE_CREDENTIALS_JSON || "C:/Users/raghu/Downloads/key.json",
     scopes: ["https://www.googleapis.com/auth/cloud-platform"]
 });
 
@@ -32,12 +44,14 @@ async function getAccessToken() {
     try {
         const client = await auth.getClient();
         const tokenResponse = await client.getAccessToken();
-        
+
         if (!tokenResponse.token) {
             throw new Error("Received empty token response");
         }
+
         return tokenResponse.token;
     } catch (error) {
+        console.error("Auth error:", error.message);
         throw new Error("Failed to retrieve access token");
     }
 }
@@ -45,12 +59,12 @@ async function getAccessToken() {
 export async function generateGeminiResponse(userMessage) {
     try {
         const accessToken = await getAccessToken();
-        
+
         const PROJECT_ID = "amazing-insight-452906-e3";
         const LOCATION_ID = "us-central1";
         const MODEL_ID = "gemini-2.0-flash-001";
         const API_ENDPOINT = `https://us-central1-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION_ID}/publishers/google/models/${MODEL_ID}:generateContent`;
-        
+
         const requestBody = {
             contents: [
                 {
@@ -61,7 +75,7 @@ export async function generateGeminiResponse(userMessage) {
             systemInstruction: {
                 parts: [
                     {
-                        text: getSystemInstructions() // Load instructions dynamically
+                        text: getSystemInstructions()
                     }
                 ]
             },
@@ -71,7 +85,7 @@ export async function generateGeminiResponse(userMessage) {
                 topP: 0.95
             }
         };
-        
+
         const response = await fetch(API_ENDPOINT, {
             method: "POST",
             headers: {
@@ -80,18 +94,19 @@ export async function generateGeminiResponse(userMessage) {
             },
             body: JSON.stringify(requestBody)
         });
-        
+
         const data = await response.json();
-        
-        const botMessage = 
+
+        const botMessage =
             data.candidates?.[0]?.content?.parts?.[0]?.text ||
             data.candidates?.[0]?.text ||
-            (data.candidates && data.candidates.length > 0 ?
-                JSON.stringify(data.candidates[0]) :
-                "Sorry, I couldn't understand that.");
-                
+            (data.candidates?.length
+                ? JSON.stringify(data.candidates[0])
+                : "Sorry, I couldn't understand that.");
+
         return { message: botMessage };
     } catch (error) {
+        console.error("Gemini API error:", error.message);
         throw new Error(`Failed to process chat request: ${error.message}`);
     }
 }
